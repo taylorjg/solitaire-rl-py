@@ -7,6 +7,14 @@ using reinforcement learning. The code is written in Python and uses:
 * [OpenAI Gym](https://gym.openai.com/)
 * A custom OpenAI Gym environment: [gym-solitaire](https://github.com/taylorjg/gym-solitaire)
 
+This code isn't great. It doesn't always seem to converge.
+And even when it does, it is pretty slow to run and can take up to 16,000 episodes
+to start solving the puzzle convincingly.
+
+Nonetheless, this is my first attempt at solving a problem using reinforcement learning so I'm
+pretty happy with it and have learnt at lot. But I will continue to experiment in an effort to
+find an implementation that is quicker and more stable. 
+
 # How it works  
 
 These are just some rough notes for now.
@@ -75,6 +83,14 @@ The following command will load a previously trained model and play a single epi
 
 ```
 python td_solitaire.py --play
+actions: [44, 69, 65, 28, 57, 65, 73, 41, 74, 8, 17, 27, 0, 32, 66, 47, 33, 71, 58, 4, 0, 56, 30, 15, 49, 11, 20, 54, 24, 13, 7]
+  ...
+  ...
+.......
+...X...
+.......
+  ...
+  ...
 ```
 
 # Train
@@ -91,8 +107,13 @@ python td_solitaire.py
 * I created a custom [OpenAI Gym](https://gym.openai.com/) environment: 
   * [gym-solitaire](https://github.com/taylorjg/gym-solitaire)
   * [How to create new environments for Gym](https://github.com/openai/gym/blob/master/docs/creating-environments.md)  
-* To solve Solitaire using reinforcement learning, I used ideas from:
+* I have done a lot of reading about reinforcement learning but I found the following to be particularly helpful:
+  * [_Reinforcement Learning: An Introduction_](http://incompleteideas.net/book/the-book.html) by Richard S. Sutton
+and Andrew G. Barto
+    * Chapter 6 _Temporal-Difference Learning_
+      * Especially Section 6.8 _Games, Afterstates, and Other Special Cases_
+    * Section 16.1 _TD-Gammon_
+    * [Full Pdf](http://incompleteideas.net/book/RLbook2020.pdf)
   * [Reinforcement Learning in the Game of Othello:
 Learning Against a Fixed Opponent
 and Learning from Self-Play](https://www.ai.rug.nl/~mwiering/GROUP/ARTICLES/paper-othello.pdf)
-  * _TODO_: list other sources...
