@@ -6,6 +6,8 @@ import torch.optim as optim
 import gym
 import random
 from gym_solitaire.envs import obs_to_board, board_to_obs
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 
 LR = 0.001
 EPSILON_START = 1
@@ -13,7 +15,7 @@ EPSILON_END = 0.01
 EPSILON_DECAY_PC = 50
 GAMMA = 1
 NUM_EPISODES = 20000
-PATH = "td-solitaire.pt"
+PATH = "td_solitaire.pt"
 
 
 def make_linear_decay_schedule(start_val, end_val, decay_pc):
@@ -86,8 +88,23 @@ def make_policy(net):
     return pi
 
 
+def show_plots(final_rewards, final_rewards_ma):
+    mpl.rcParams['toolbar'] = 'None'
+    plt.figure(figsize=(6, 8))
+    plt.subplot(211)
+    plt.plot(final_rewards, linewidth=0.5)
+    plt.ylabel('Final Reward')
+    plt.xlabel('Episodes')
+    plt.subplot(212)
+    plt.plot([0] * 100 + final_rewards_ma, linewidth=0.5)
+    plt.ylabel('Final Reward (moving average)')
+    plt.xlabel('Episodes')
+    plt.show()
+
+
 def train(env, pi, net, loss_fn, opt):
     final_rewards = []
+    final_rewards_ma = []
     best_final_reward = np.NINF
     best_final_reward_ma = np.NINF
     epsilon_decay_schedule = make_linear_decay_schedule(EPSILON_START, EPSILON_END, EPSILON_DECAY_PC)
@@ -108,13 +125,9 @@ def train(env, pi, net, loss_fn, opt):
             # Get the current estimate of the value of the current state.
             s_value = net(torch.tensor(s)).squeeze()
 
-            # Calculate the target value of the current state based on the
-            # reward received from the environment and a discounted estimate
-            # of the next state. This is the TD error assuming that alpha = 1.
-            # We set the alpha learning rate to 1 but, of course, the optimiser
-            # has it's own learning rate (LR).
-            # If the done flag is set, use the reward only (ignore the term
-            # involving s2_value). This is achieved by multiplying by (1 - done).
+            # Calculate the TD target value of the current state based on the
+            # reward received from the environment plus the discounted estimate
+            # of the next state. If the done flag is set, use the reward only.
             s_value_target = r + (1 - done) * GAMMA * s2_value
 
             # Calculate the loss.
@@ -134,6 +147,7 @@ def train(env, pi, net, loss_fn, opt):
                 final_reward_ma = np.NINF
                 if len(final_rewards) >= 100:
                     final_reward_ma = np.mean(final_rewards[-100:])
+                    final_rewards_ma.append(final_reward_ma)
                     if final_reward_ma > best_final_reward_ma:
                         best_final_reward_ma = final_reward_ma
                 print(f"episode: {episode:5}; "
@@ -144,6 +158,7 @@ def train(env, pi, net, loss_fn, opt):
                 # If the moving average final reward looks good enough,
                 # save the trained model and return.
                 if final_reward_ma >= 50:
+                    show_plots(final_rewards, final_rewards_ma)
                     print(f"saving trained model to {PATH}")
                     torch.save(net.state_dict(), PATH)
                     return
@@ -151,6 +166,7 @@ def train(env, pi, net, loss_fn, opt):
                 break
 
             s = s2
+    show_plots(final_rewards, final_rewards_ma)
 
 
 def play(env, pi):
